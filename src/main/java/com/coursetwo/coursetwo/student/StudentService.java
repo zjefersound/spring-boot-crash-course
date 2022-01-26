@@ -3,6 +3,7 @@ package com.coursetwo.coursetwo.student;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -26,5 +27,28 @@ public class StudentService {
             throw new IllegalStateException("email taken");
         }
         studentRepository.save(student);
+    }
+
+    public void deleteStudent(Long id) {
+        boolean exists = studentRepository.existsById(id);
+        if (!exists) {
+            throw new IllegalStateException("student with id: "+id+" not found");
+        }
+        studentRepository.deleteById(id);
+    }
+
+    @Transactional
+    public void updateStudent(Long id, Student student) {
+        Student updatedStudent = studentRepository
+                .findById(id)
+                .orElseThrow(() -> new IllegalStateException("student with id "+id+" doesn't exist"));
+        updatedStudent.setName(student.getName());
+
+        Optional<Student> studentOptional = studentRepository.findStudentByEmail(student.getEmail());
+        if(studentOptional.isPresent()) {
+            throw new IllegalStateException("email taken");
+        } else {
+            updatedStudent.setEmail(student.getEmail());
+        }
     }
 }
